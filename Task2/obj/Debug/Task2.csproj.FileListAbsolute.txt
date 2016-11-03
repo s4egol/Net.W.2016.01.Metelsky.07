@@ -1,0 +1,4 @@
+C:\Users\s4egol\Desktop\EPAM\Net.W.2016.01.Metelsky.07\Task2\bin\Debug\Task2.dll
+C:\Users\s4egol\Desktop\EPAM\Net.W.2016.01.Metelsky.07\Task2\bin\Debug\Task2.pdb
+C:\Users\s4egol\Desktop\EPAM\Net.W.2016.01.Metelsky.07\Task2\obj\Debug\Task2.dll
+C:\Users\s4egol\Desktop\EPAM\Net.W.2016.01.Metelsky.07\Task2\obj\Debug\Task2.pdb
