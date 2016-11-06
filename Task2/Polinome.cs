@@ -4,34 +4,106 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Configuration;
 
 namespace Task2
 {
-    public class Polinome
+    public sealed class Polinome : IEquatable<Polinome>
     {
         private readonly double[] elements;
+        private int degree;
+        public static double Epsilon { get; set; }
 
-        public double[] Elements { get { return elements; } }
-
-        public Polinome(double[] elements)
+        static Polinome()
         {
-            this.elements = elements;
+            try
+            {
+                Epsilon = double.Parse(ConfigurationManager.AppSettings["epsilon"]);
+            }
+            catch (ConfigurationErrorsException exp)
+            {
+                throw new ConfigurationErrorsException("Impossible to obtain epsilon", exp);
+            }
+            catch (Exception exp)
+            {
+                throw new Exception("Invalid value of epsilon", exp);
+            }
         }
 
+        public Polinome(params double[] elements)
+        {
+            if (elements == null)
+                throw new ArgumentNullException($"{nameof(elements)} can't be NULL");
+            if (elements.Length == 0)
+                throw new ArgumentException();
+
+            this.elements = new double[elements.Length];
+            Array.Copy(elements, this.elements, elements.Length);
+            degree = this.elements.Length - 1;
+        }
+
+        public int Degree
+        {
+            get 
+            {
+                return degree;
+            }
+        }
+
+        public double this[int index]
+        {
+            get
+            {
+                if (index > elements.Length || index < 0)
+                    throw new ArgumentOutOfRangeException();
+
+                return elements[index];
+            }
+            private set
+            {
+                if (index > elements.Length || index < 0)
+                    throw new ArgumentOutOfRangeException();
+                else
+                {
+                    this.elements[index] = value;
+                }
+            }
+        }
+
+        public double Calculate(double number)
+        {
+            double result = 0.0;
+            for (int i = degree; i >= 0; i--)
+            {
+                if (Math.Abs(this[i]) > Epsilon)
+                {
+                    result += Math.Pow(number, i)*this[i];
+                }
+            }
+            return result;
+        }
+
+        #region Methods Object and implement IEquatable<Polinome>
         public override bool Equals(object obj)
         {
-            if (obj == null || !(obj is Polinome))
+            if (ReferenceEquals(obj, null) || !(obj is Polinome))
                 return false;
-            else
-                return Enumerable.SequenceEqual(((Polinome)obj).elements, this.elements);
+
+            if (ReferenceEquals(obj, this))
+                return true;
+
+            return MakeEquals(this, (Polinome)obj);
         }
 
         public bool Equals(Polinome polinome)
         {
-            if (polinome == null)
+            if (ReferenceEquals(polinome, null))
                 return false;
-            else
-                return Enumerable.SequenceEqual(polinome.elements, this.elements);
+
+            if (ReferenceEquals(polinome, this))
+                return true;
+
+            return MakeEquals(this, polinome);
         }
 
         public override int GetHashCode()
@@ -45,14 +117,40 @@ namespace Task2
                 return String.Empty;
 
             String returnString = String.Empty;
-            for (int i = 0; i < elements.Length; i++)
+            if (elements[degree] > Epsilon)
+                returnString += $"{elements[degree]}*x^{degree}";
+            else
+                returnString += "0";
+            if (degree > 0)
             {
-                returnString += $"{elements[i]}*x^{i} ";
+                for (int i = elements.Length - 2; i >= 0; i--)
+                {
+                    if (elements[i] < Epsilon)
+                        continue;
+                    else
+                        returnString += elements[i] > 0 ? $"+{elements[i]}*x^{i}" : $"-{elements[i]}*x^{i}";
+                }
             }
 
             return returnString;
         }
 
+        private bool MakeEquals(Polinome polinome1, Polinome polinome2)
+        {
+            if (polinome1.elements.Length != polinome2.elements.Length)
+                return false;
+
+            for (int i = 0; i < polinome1.elements.Length; i++)
+            {
+                if (polinome1.elements[i] != polinome2.elements[i])
+                    return false;
+            }
+
+            return true;
+        }
+        #endregion
+
+        #region +
         public static Polinome operator + (Polinome firstPolinom, Polinome secondPolinom)
         {
             return new Polinome(Sum(firstPolinom.elements, secondPolinom.elements));
@@ -67,7 +165,9 @@ namespace Task2
         {
             return new Polinome(Sum(firstPolinom.elements, secondPolinom));
         }
+        #endregion
 
+        #region -
         public static Polinome operator - (Polinome firstPolinom, Polinome secondPolinom)
         {
             return new Polinome(Sub(firstPolinom.elements, secondPolinom.elements));
@@ -82,7 +182,9 @@ namespace Task2
         {
             return new Polinome(Sub(firstPolinom.elements, secondPolinom));
         }
+        #endregion
 
+        #region *
         public static Polinome operator * (Polinome firstPolinom, Polinome secondPolinom)
         {
             return new Polinome(Mul(firstPolinom.elements, secondPolinom.elements));
@@ -97,6 +199,19 @@ namespace Task2
         {
             return new Polinome(Mul(firstPolinom.elements, secondPolinom));
         }
+        #endregion
+
+        #region == and !=
+        public static bool operator ==(Polinome polinome1, Polinome polinome2)
+        {
+            return polinome1.Equals(polinome2);
+        }
+
+        public static bool operator != (Polinome polinome1, Polinome polinome2)
+        {
+            return !(polinome1 == polinome2);
+        }
+        #endregion
 
         private static double[] Sum(double[] first, double[] second)
         {
