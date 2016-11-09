@@ -8,7 +8,7 @@ using System.Configuration;
 
 namespace Task2
 {
-    public sealed class Polinome : IEquatable<Polinome>
+    public sealed class Polinome : IEquatable<Polinome>, ICloneable
     {
         private readonly double[] elements;
         private int degree;
@@ -170,34 +170,34 @@ namespace Task2
         #region -
         public static Polinome operator - (Polinome firstPolinom, Polinome secondPolinom)
         {
-            return new Polinome(Sub(firstPolinom.elements, secondPolinom.elements));
+            return new Polinome(Subtract(firstPolinom.elements, secondPolinom.elements));
         }
 
         public static Polinome operator - (double[] firstPolinom, Polinome secondPolinom)
         {
-            return new Polinome(Sub(firstPolinom, secondPolinom.elements));
+            return new Polinome(Subtract(firstPolinom, secondPolinom.elements));
         }
 
         public static Polinome operator - (Polinome firstPolinom, double[] secondPolinom)
         {
-            return new Polinome(Sub(firstPolinom.elements, secondPolinom));
+            return new Polinome(Subtract(firstPolinom.elements, secondPolinom));
         }
         #endregion
 
         #region *
         public static Polinome operator * (Polinome firstPolinom, Polinome secondPolinom)
         {
-            return new Polinome(Mul(firstPolinom.elements, secondPolinom.elements));
+            return new Polinome(Multiply(firstPolinom.elements, secondPolinom.elements));
         }
 
         public static Polinome operator * (double[] firstPolinom, Polinome secondPolinom)
         {
-            return new Polinome(Mul(firstPolinom, secondPolinom.elements));
+            return new Polinome(Multiply(firstPolinom, secondPolinom.elements));
         }
 
         public static Polinome operator * (Polinome firstPolinom, double[] secondPolinom)
         {
-            return new Polinome(Mul(firstPolinom.elements, secondPolinom));
+            return new Polinome(Multiply(firstPolinom.elements, secondPolinom));
         }
         #endregion
 
@@ -218,12 +218,12 @@ namespace Task2
             return MakeOperation(first, second, (coefficient1, coefficient2) => coefficient1 + coefficient2);
         }
 
-        private static double[] Sub(double[] first, double[] second)
+        private static double[] Subtract(double[] first, double[] second)
         {
             return MakeOperation(first, second, (coefficient1, coefficient2) => coefficient1 - coefficient2);
         }
 
-        private static double[] Mul(double[] first, double[] second)
+        private static double[] Multiply(double[] first, double[] second)
         {
             if (first == null || second == null)
                 throw new ArgumentNullException();
@@ -275,5 +275,16 @@ namespace Task2
             return polinomeLonger;
         }
 
+        public Polinome Clone()
+        {
+            double[] copyOfArray = new double[this.elements.Length];
+            Array.Copy(this.elements, copyOfArray, this.elements.Length);
+
+            return new Polinome(copyOfArray);
+        }
+        object  ICloneable.Clone()
+        {
+            return Clone();
+        }
     }
 }
